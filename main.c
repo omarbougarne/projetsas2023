@@ -29,12 +29,12 @@ void addTask() {
 
     // Create a new task and read its attributes from the user
     struct Task newTask;
-    printf("Enter task title:\n ");
-    scanf("%s", newTask.title);
-    printf("Enter task description:\n ");
-    scanf("%s", newTask.description);
+    printf("Enter task title:\n");
+    scanf(" %99[^\n]", newTask.title);
+    printf("Enter task description:\n");
+    scanf(" %199[^\n]", newTask.description);
     printf("Enter task deadline yyyy/mm/dd:\n");
-    scanf("%10s", newTask.deadline);
+    scanf("%s", newTask.deadline);
     printf("Enter task status:\n ");
     scanf("%s", newTask.status);
 
@@ -201,11 +201,10 @@ void sortTasksTitle() {
     for (int i = 0; i < numTasks - 1; i++) {
         int minIndex = i;
         for (int j = i + 1; j < numTasks; j++) {
-            if (strcmp(tasks[j].title, tasks[minIndex].title) < 0) {
+            if (strcmp(tasks[j].title, tasks[minIndex].title) < 0 ||(strcmp(tasks[j].title, tasks[minIndex].title) == 0 && tasks[j].title <= tasks[minIndex].title)) {
                 minIndex = j;
             }
         }
-
         // Swap the tasks if the minimum task is not at its correct position
         if (minIndex != i) {
             struct Task temp = tasks[i];
@@ -216,6 +215,7 @@ void sortTasksTitle() {
 
     printf("Tasks sorted by title!\n");
 }
+
 // Function to compare two tasks by deadline
 int compareTasksByDeadline(const struct Task task1, const struct Task task2) {
     return strcmp(task1.deadline, task2.deadline);
@@ -239,6 +239,7 @@ void sortByDeadline() {
         }
     }
 }
+//Function to display number of tasks
 void totalTasks() {
     printf("Total number of tasks: %d\n", numTasks);
 }
@@ -260,31 +261,32 @@ void taskCompletedIncompleted() {
     printf("Number of completed tasks: %d\n", completeCount);
     printf("Number of incompleted tasks: %d\n", incompleteCount);
 }
+
 char todayDate[11];
-// Function to check if a given deadline is within the next 3 days
+// Define a function to check if a given deadline is within 3 days from the current date
 bool isWithin3Days(const char deadline[11]) {
+    // Declare a variable to store the current time
     time_t now;
-    struct tm today_tm;
-    time(&now); // Get the current time (in seconds since Jan 1, 1970)
-    // Convert the current time to a local date and time representation
-    localtime_s(&today_tm, &now);
-    // Extract year, month, and day from the current local time
-    int todayYear = today_tm.tm_year + 1900; // Adjust year to get the actual year (e.g., 2023)
-    int todayMonth = today_tm.tm_mon + 1; // Adjust month (0-11) to (1-12)
-    int todayDay = today_tm.tm_mday; // Get the day of the month
-
-    int deadlineYear, deadlineMonth, deadlineDay; // Declare variables for deadline components
-
-    // Parse the deadline string in the format "YYYY/MM/DD" and extract components
+    // Declare a pointer to a structure to store information about the current date and time
+    struct tm *today_tm;
+    // Get the current time and store it in the 'now' variable
+    time(&now);// recieves current time as seconds and stores it in now variable
+    // Convert the current time to a structure that contains date and time information
+    today_tm = localtime(&now);//converts the previous time to year month day etc...
+    // Extract the current year, month, and day from the 'today_tm' structure
+    int todayYear = today_tm->tm_year + 1900; // Year offset since 1900
+    int todayMonth = today_tm->tm_mon + 1;    // Month is 0-based, so add 1
+    int todayDay = today_tm->tm_mday;         // Day of the month
+    // Declare variables to store the year, month, and day of the deadline
+    int deadlineYear, deadlineMonth, deadlineDay;
+    // Parse the 'deadline' string in the format "YYYY/MM/DD" and store the values in the respective variables
     sscanf(deadline, "%4d/%2d/%2d", &deadlineYear, &deadlineMonth, &deadlineDay);
-
-    // Calculate the date difference in days
+    // Calculate the difference in days between the deadline and the current date
     int daysDifference =
-        (deadlineYear - todayYear) * 365 + // Calculate year difference in days (approximation)
-        (deadlineMonth - todayMonth) * 30 + // Calculate month difference in days (approximation)
-        (deadlineDay - todayDay); // Calculate day difference
-
-    // Check if the calculated difference is between 0 and 3 days (inclusive)
+        (deadlineYear - todayYear) * 365 +     // Calculate year difference in days
+        (deadlineMonth - todayMonth) * 30 +    // Calculate month difference in days (approximate)
+        (deadlineDay - todayDay);              // Calculate day difference
+    // Check if the calculated difference in days is non-negative and less than or equal to 3
     return (daysDifference >= 0 && daysDifference <= 3);
 }
 
@@ -320,11 +322,11 @@ void displayDaysUntilDeadline() {
         sscanf(tasks[i].deadline, "%4d/%2d/%2d", &year, &month, &day);
 
         // Calculate the time since epoch for the deadline
-        struct tm deadlineTm = {0};
-        deadlineTm.tm_year = year - 1900;
+        struct tm deadlineTm = {0};// we start it with zero because of hours minutes seconds
+        deadlineTm.tm_year = year - 1900;//calculates time
         deadlineTm.tm_mon = month - 1;
         deadlineTm.tm_mday = day;
-        deadlineTime = mktime(&deadlineTm);
+        deadlineTime = mktime(&deadlineTm);//converts pointer to time_t also adjusts time 32 new month
 
         // Calculate the number of days remaining
         daysRemaining = (int)((deadlineTime - now) / (60 * 60 * 24));
